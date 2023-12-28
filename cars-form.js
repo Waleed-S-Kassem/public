@@ -2626,13 +2626,16 @@ $(document).ready(function () {
     date = new Date(date);
     var timeSlotsGroupedByDate = await booklyHack.getAvailableTimeSlots(selectedService, date);
     var slotsForSelectedDate = timeSlotsGroupedByDate.find(g => g.key == `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
-    if (slotsForSelectedDate.slots) {
-      var options = "";
+    var options = "";
+    if (!slotsForSelectedDate) {
+      options += `<option value="" data-val="">No time slots</option>`;
+    } else if (slotsForSelectedDate.slots) {
       slotsForSelectedDate.slots.forEach(slot => {
         options += `<option value="${slot.key}" data-val="${slot.key}">${slot.text}</option>`;
       });
-      $('#slot_time').html(options);
     }
+    
+    $('#slot_time').html(options);
   }
 
   const dropEl = document.getElementById("dropdown-locations");

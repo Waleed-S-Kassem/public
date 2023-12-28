@@ -2347,11 +2347,11 @@ $(document).ready(function () {
     });
 
     // date update
-    $("#datepicker").on("change", function () {
+    $("#datepicker").on("change", async function () {
       $(".waiting").show();
       var servieId = $("#visit-type input[type='radio']:checked").data("id");
       var date = $('#datepicker').datepicker({ dateFormat: 'yy-mm-dd' }).val();
-      getTimeSlots(servieId, date);
+      await getTimeSlots(servieId, date);
       $(".waiting").hide();
     });
   }
@@ -2615,7 +2615,7 @@ $(document).ready(function () {
 
       var date = $('#datepicker').datepicker({ dateFormat: 'yy-mm-dd' }).val();
       //debugger;
-      getTimeSlots(selectedService, date);
+      await getTimeSlots(selectedService, date);
       changeVisitType();
     }
 
@@ -2831,11 +2831,11 @@ $(document).ready(function () {
       $("#slide-appointment p").addClass("d-none");
     }
   };
-  $("#slide-appointment input[type='radio']").live("click", function () {
+  $("#slide-appointment input[type='radio']").live("click", async function () {
     changeVisitType();
     var serviceId = $(this).data("id");
     var date = $('#datepicker').datepicker({ dateFormat: 'yy-mm-dd' }).val();
-    getTimeSlots(serviceId, date);
+    await getTimeSlots(serviceId, date);
   });
   /**
    *  validate form for step 7 appointment

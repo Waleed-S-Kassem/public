@@ -2625,7 +2625,7 @@ $(document).ready(function () {
   async function getTimeSlots(selectedService, date) {
     date = new Date(date);
     var timeSlotsGroupedByDate = await booklyHack.getAvailableTimeSlots(selectedService, date);
-    var slotsForSelectedDate = timeSlotsGroupedByDate.find(g => g.key == `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`);
+    var slotsForSelectedDate = timeSlotsGroupedByDate.find(g => g.key == `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`);
     var options = "";
     if (!slotsForSelectedDate) {
       options += `<option value="" data-val="">No time slots</option>`;

@@ -2343,7 +2343,6 @@ $(document).ready(function () {
                     <input type="tel" required class="phoneNumber form-control" placeholder="Phone" id="phoneNumber" maxlength="9">
                   </div>
                 </div>
-                <p class="text-center">Please give us your phone number so we can arrange a specialist visit for inspection &amp; photos. </p>
                 <div class="col-auto mx-auto">
                   <button id="schedule_inspection" type="submit" class="btn btn-primary btn-continue px-5 py-2">
                     Schedule Car Inspection

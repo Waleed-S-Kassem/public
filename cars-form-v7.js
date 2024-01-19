@@ -310,30 +310,45 @@ $(document).ready(function () {
   let booklyHack = new BooklyHack();
   $.fn.datepicker.defaults.autoclose = true;
   $.fn.datepicker.defaults.startDate = "0";
+  window.onbeforeunload = function () {
+    if (window.appointementBooking.isDirty) {
+      return "Are you sure you want to leave?";
+    }
+  };
+
+  function compareIgnoreDash(str1, str2) {
+    // Convert both strings to lowercase and replace whitespaces with dashes
+    const normalizedStr1 = str1.toLowerCase().replace(/\s/g, "-");
+    const normalizedStr2 = str2.toLowerCase().replace(/\s/g, "-");
+
+    // Compare the normalized strings
+    return normalizedStr1 === normalizedStr2;
+  }
+
 
   let years = [
-      "Older",
-      "2005",
-      "2006",
-      "2007",
-      "2008",
-      "2009",
-      "2010",
-      "2011",
-      "2012",
-      "2013",
-      "2014",
-      "2015",
-      "2016",
-      "2017",
-      "2018",
-      "2019",
-      "2020",
-      "2021",
-      "2022",
-      "2023",
-      "2024",
-    ],
+    "Older",
+    "2005",
+    "2006",
+    "2007",
+    "2008",
+    "2009",
+    "2010",
+    "2011",
+    "2012",
+    "2013",
+    "2014",
+    "2015",
+    "2016",
+    "2017",
+    "2018",
+    "2019",
+    "2020",
+    "2021",
+    "2022",
+    "2023",
+    "2024",
+  ],
     models = [
       {
         name: "Abarth",
@@ -2182,6 +2197,27 @@ $(document).ready(function () {
             </div>
             <div class="radio-wrapper radio-column" id="cities-list"></div>
           </div>
+          <div class="slide slide-mileage" id="slide-mileage">
+            <div class="slider-holder mb-3 mb-md-4 py-4">
+              <div class="title-row">
+                <span>Mileage (approx)</span>
+                <span id="range-miles">25,000 Kilometers</span>
+              </div>
+              <div class="range-slider" data-id="range-miles">
+                <input class="range-slider__range" type="range" value="25000" min="0" max="350000"
+                  step="1000">
+              </div>
+              <div class="labels-holder">
+                <span id="mileage-min-label" data-label="0 Kilometer" data-label-sm="0 Kilometer"></span>
+                <span id="mileage-max-label" data-label="350,000 Kilometers" data-label-sm="+350k Kilometers"></span>
+              </div>
+            </div>
+            <div class="col-auto mx-auto">
+              <button id="continue-button" type="button" class="btn btn-primary btn-continue px-5 py-2">
+                Continue
+              </button>
+            </div>
+          </div>
           <div class="slide slide-appointment" id="slide-appointment">
             <div class="slide-header">
               <h5>When should we inspect the car?</h5>
@@ -2251,27 +2287,6 @@ $(document).ready(function () {
                   Continue
                 </button>
               </div>
-            </div>
-          </div>
-          <div class="slide slide-mileage" id="slide-mileage">
-            <div class="slider-holder mb-3 mb-md-4 py-4">
-              <div class="title-row">
-                <span>Mileage (approx)</span>
-                <span id="range-miles">25,000 Kilometers</span>
-              </div>
-              <div class="range-slider" data-id="range-miles">
-                <input class="range-slider__range" type="range" value="25000" min="0" max="350000"
-                  step="1000">
-              </div>
-              <div class="labels-holder">
-                <span id="mileage-min-label" data-label="0 Kilometer" data-label-sm="0 Kilometer"></span>
-                <span id="mileage-max-label" data-label="350,000 Kilometers" data-label-sm="+350k Kilometers"></span>
-              </div>
-            </div>
-            <div class="col-auto mx-auto">
-              <button id="continue-button" type="button" class="btn btn-primary btn-continue px-5 py-2">
-                Continue
-              </button>
             </div>
           </div>
           <div class="slide" id="slide-paints">
@@ -2356,7 +2371,7 @@ $(document).ready(function () {
               <lottie-player src="https://assets5.lottiefiles.com/packages/lf20_atippmse.json" 
               background="transparent" speed="2" style="width: 200px; height: 200px;margin: auto;" id="thanks-lottie"></lottie-player>
             </div>
-            <p class="main-content__body">Thanks for booking an appointment with us! <br> Our team will call you shortly and confirm the appointment with you</p>
+            <p class="main-content__body">Thank you for booking your inspection appointment with CarsXchange.<br />A confirmation email with all the details has been sent.</p>
           </div>
         </div>
       </form>
@@ -2445,7 +2460,9 @@ $(document).ready(function () {
   }
 
   const nextSlide = () => {
-    //console.log("123");
+    window.appointementBooking = {
+      isDirty: true
+    };
     if (animating) return false;
     animating = true;
     current_fs = $(".slide.active");
@@ -2455,7 +2472,6 @@ $(document).ready(function () {
       progressVal += 10;
     }
     next_fs = current_fs.next();
-    //console.log(next_fs);
     current_fs.removeClass("active");
     next_fs.addClass("active");
     setTimeout(() => {
@@ -2691,6 +2707,16 @@ $(document).ready(function () {
           // Skip the iteration if service.id is 4
           return;
         }
+
+        // Dubai only show home service for cars newer than 2018 & with sub 100K milage
+        if (cityId === 1) {
+          let mileage = $("[data-id='range-miles'] input").val();
+          let year = $("#car-years-list input[type='radio']:checked").val();
+          if (parseInt(year) < 2018 || parseInt(mileage) > 100000){
+            return;
+          }
+        }
+
         if (cityId == service.categoryId) {
           var checked = "";
           if (i == 0) {
@@ -2762,7 +2788,12 @@ $(document).ready(function () {
       .sort()
       .splice(0, 5);
 
+    const notFound = filteredWords.length === 0;
+
     dropEl.innerHTML = "";
+    if (notFound) {
+      filteredWords.concat("Type your area name");
+    }
     filteredWords.forEach((item) => {
       const listEl = document.createElement("li");
       listEl.textContent = item;
@@ -2783,7 +2814,11 @@ $(document).ready(function () {
 
   // add value to city area input from dropdown-locations
   $("body").on("click", "#dropdown-locations li", function () {
-    $("#city-area").val($(this).html());
+    if ($(this).html() === 'Type your area name') {
+      alert("Type your area name!");
+    } else {
+      $("#city-area").val($(this).html());
+    }
   });
   // fill models function
   const fillModels = (car) => {
@@ -2951,7 +2986,7 @@ $(document).ready(function () {
       $("#slot_time").val() == null ||
       ($("#visit-type input[type='radio']:checked").val() == "branch" &&
         ($("#datepicker").val() == "" || $("#slot_time").val() == null)) ||
-      ($("#visit-type input[type='radio']:checked").val() == "home-service" &&
+      (compareIgnoreDash($("#visit-type input[type='radio']:checked").val(), "home-service") &&
         ($("#datepicker").val() == "" ||
           $("#slot_time").val() == null ||
           $("#city-area").val() == "" ||
@@ -3011,9 +3046,8 @@ $(document).ready(function () {
       (100 * (slider.value - slider.min)) / (slider.max - slider.min);
     // now we'll create a linear gradient that separates at the above point
     // Our background color will change here
-    const bg = `linear-gradient(90deg, ${settings.fill} ${percentage}%, ${
-      settings.background
-    } ${percentage + 0.1}%)`;
+    const bg = `linear-gradient(90deg, ${settings.fill} ${percentage}%, ${settings.background
+      } ${percentage + 0.1}%)`;
     slider.style.background = bg;
   }
   $("#schedule_inspection").on("click", async function () {
@@ -3024,13 +3058,13 @@ $(document).ready(function () {
       let data = {
         make:
           $("#cars-list input[type='radio']:checked").val() !== "other-car" &&
-          $("#cars-list input[type='radio']:checked").val() !== undefined
+            $("#cars-list input[type='radio']:checked").val() !== undefined
             ? $("#cars-list input[type='radio']:checked").val()
             : $("#search-car").val(),
         model:
           $("#car-models-list input[type='radio']:checked").val() !==
             "other-model" &&
-          $("#car-models-list input[type='radio']:checked").val() !== undefined
+            $("#car-models-list input[type='radio']:checked").val() !== undefined
             ? $("#car-models-list input[type='radio']:checked").val()
             : $("#search-model").val(),
         year: $("#car-years-list input[type='radio']:checked").val(),
@@ -3049,9 +3083,7 @@ $(document).ready(function () {
         Fbclid: $("#fbclid_field").val(),
         Userid: $("#userid_field").val(),
       };
-      if (
-        $("#visit-type input[type='radio']:checked").val() == "home-service"
-      ) {
+      if (compareIgnoreDash($("#visit-type input[type='radio']:checked").val(), "home-service")) {
         data.area = $("#city-area").val();
         data.instructions = $("#instruction").val();
       }
@@ -3065,13 +3097,13 @@ $(document).ready(function () {
 
       var make =
         $("#cars-list input[type='radio']:checked").val() !== "other-car" &&
-        $("#cars-list input[type='radio']:checked").val() !== undefined
+          $("#cars-list input[type='radio']:checked").val() !== undefined
           ? $("#cars-list input[type='radio']:checked").val()
           : $("#search-car").val();
       var model =
         $("#car-models-list input[type='radio']:checked").val() !==
           "other-model" &&
-        $("#car-models-list input[type='radio']:checked").val() !== undefined
+          $("#car-models-list input[type='radio']:checked").val() !== undefined
           ? $("#car-models-list input[type='radio']:checked").val()
           : $("#search-model").val();
       var year = $("#car-years-list input[type='radio']:checked").val();
@@ -3094,12 +3126,7 @@ $(document).ready(function () {
         `FormId: ${booklyHack.formId} \n` +
         `Paint: ${paint} \n`;
 
-      if (
-        $("#visit-type input[type='radio']:checked")
-          .val()
-          .toLowerCase()
-          .replace(/\s/g, "-") == "home-service"
-      ) {
+      if (compareIgnoreDash($("#visit-type input[type='radio']:checked").val(), "home-service")) {
         note = note + `City Area: ${city_area} \n`;
         note = note + `Instruction: ${instruction} \n`;
       }
@@ -3124,12 +3151,7 @@ $(document).ready(function () {
 
       console.log();
 
-      if (
-        $("#visit-type input[type='radio']:checked")
-          .val()
-          .toLowerCase()
-          .replace(/\s/g, "-") == "home-service"
-      ) {
+      if (compareIgnoreDash($("#visit-type input[type='radio']:checked").val(), "home-service")) {
         noteInJson.textLocation = city_area + "-" + instruction;
       }
 
@@ -3153,6 +3175,9 @@ $(document).ready(function () {
           $this.html("Schedule Car Inspection").prop("disabled", false);
           nextSlide();
           document.querySelector("lottie-player").play();
+          window.appointementBooking = {
+            isDirty: false
+          };
         }
       }, 1000);
     }
